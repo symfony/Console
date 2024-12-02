@@ -110,6 +110,14 @@ class ProgressBarTest extends TestCase
         );
     }
 
+    public function testRegularTimeRemainingWithDifferentStartAtAndCustomDisplay()
+    {
+        ProgressBar::setFormatDefinition('custom', ' %current%/%max% [%bar%] %percent:3s%% %remaining% %estimated%');
+        $bar = new ProgressBar($output = $this->getOutputStream(), 1_200, 0);
+        $bar->setFormat('custom');
+        $bar->start(1_200, 600);
+    }
+
     public function testResumedTimeEstimation()
     {
         $bar = new ProgressBar($output = $this->getOutputStream(), 1_200, 0);
