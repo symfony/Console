@@ -87,39 +87,41 @@ abstract class Helper implements HelperInterface
 
     public static function formatTime(int|float $secs, int $precision = 1): string
     {
+        $ms = (int) ($secs * 1000);
         $secs = (int) floor($secs);
 
-        if (0 === $secs) {
-            return '< 1 sec';
+        if (0 === $ms) {
+            return '< 1 ms';
         }
 
         static $timeFormats = [
-            [1, '1 sec', 'secs'],
-            [60, '1 min', 'mins'],
-            [3600, '1 hr', 'hrs'],
-            [86400, '1 day', 'days'],
+            [1, 'ms'],
+            [1000, 's'],
+            [60000, 'min'],
+            [3600000, 'h'],
+            [86_400_000, 'd'],
         ];
 
         $times = [];
         foreach ($timeFormats as $index => $format) {
-            $seconds = isset($timeFormats[$index + 1]) ? $secs % $timeFormats[$index + 1][0] : $secs;
+            $milliSeconds = isset($timeFormats[$index + 1]) ? $ms % $timeFormats[$index + 1][0] : $ms;
 
             if (isset($times[$index - $precision])) {
                 unset($times[$index - $precision]);
             }
 
-            if (0 === $seconds) {
+            if (0 === $milliSeconds) {
                 continue;
             }
 
-            $unitCount = ($seconds / $format[0]);
-            $times[$index] = 1 === $unitCount ? $format[1] : $unitCount.' '.$format[2];
+            $unitCount = ($milliSeconds / $format[0]);
+            $times[$index] = $unitCount.' '.$format[1];
 
-            if ($secs === $seconds) {
+            if ($ms === $milliSeconds) {
                 break;
             }
 
-            $secs -= $seconds;
+            $ms -= $milliSeconds;
         }
 
         return implode(', ', array_reverse($times));
