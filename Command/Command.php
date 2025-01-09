@@ -328,7 +328,7 @@ class Command
             $code = $code(...);
         }
 
-        $this->code = new InvokableCommand($this, $code);
+        $this->code = new InvokableCommand($this, $code, triggerDeprecations: true);
 
         return $this;
     }

@@ -35,6 +35,7 @@ class InvokableCommand
     public function __construct(
         private readonly Command $command,
         private readonly \Closure $code,
+        private readonly bool $triggerDeprecations = false,
     ) {
         $this->reflection = new \ReflectionFunction($code);
     }
@@ -47,10 +48,13 @@ class InvokableCommand
         $statusCode = ($this->code)(...$this->getParameters($input, $output));
 
         if (null !== $statusCode && !\is_int($statusCode)) {
-            // throw new LogicException(\sprintf('The command "%s" must return either void or an integer value in the "%s" method, but "%s" was returned.', $this->command->getName(), $this->reflection->getName(), get_debug_type($statusCode)));
-            trigger_deprecation('symfony/console', '7.3', \sprintf('Returning a non-integer value from the command "%s" is deprecated and will throw an exception in PHP 8.0.', $this->command->getName()));
+            if ($this->triggerDeprecations) {
+                trigger_deprecation('symfony/console', '7.3', \sprintf('Returning a non-integer value from the command "%s" is deprecated and will throw an exception in PHP 8.0.', $this->command->getName()));
 
-            return 0;
+                return 0;
+            }
+
+            throw new LogicException(\sprintf('The command "%s" must return either void or an integer value in the "%s" method, but "%s" was returned.', $this->command->getName(), $this->reflection->getName(), get_debug_type($statusCode)));
         }
 
         return $statusCode ?? 0;
@@ -92,10 +96,13 @@ class InvokableCommand
             $type = $parameter->getType();
 
             if (!$type instanceof \ReflectionNamedType) {
-                // throw new LogicException(\sprintf('The parameter "$%s" must have a named type. Untyped, Union or Intersection types are not supported.', $parameter->getName()));
-                trigger_deprecation('symfony/console', '7.3', \sprintf('Omitting the type declaration for the parameter "$%s" is deprecated and will throw an exception in PHP 8.0.', $parameter->getName()));
+                if ($this->triggerDeprecations) {
+                    trigger_deprecation('symfony/console', '7.3', \sprintf('Omitting the type declaration for the parameter "$%s" is deprecated and will throw an exception in PHP 8.0.', $parameter->getName()));
 
-                continue;
+                    continue;
+                }
+
+                throw new LogicException(\sprintf('The parameter "$%s" must have a named type. Untyped, Union or Intersection types are not supported.', $parameter->getName()));
             }
 
             $parameters[] = match ($type->getName()) {
