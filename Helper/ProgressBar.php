@@ -229,7 +229,7 @@ final class ProgressBar
 
     public function getRemaining(): float
     {
-        if (!$this->step) {
+        if (0 === $this->step || $this->step === $this->startingStep) {
             return 0;
         }
 
@@ -610,7 +610,7 @@ final class ProgressBar
     {
         \assert(null !== $this->format);
 
-        $regex = "{%([a-z\-_]+)(?:\:([^%]+))?%}i";
+        $regex = '{%([a-z\-_]+)(?:\:([^%]+))?%}i';
         $callback = function ($matches) {
             if ($formatter = $this->getPlaceholderFormatter($matches[1])) {
                 $text = $formatter($this, $this->output);
@@ -621,7 +621,7 @@ final class ProgressBar
             }
 
             if (isset($matches[2])) {
-                $text = sprintf('%'.$matches[2], $text);
+                $text = \sprintf('%'.$matches[2], $text);
             }
 
             return $text;
